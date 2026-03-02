@@ -7,18 +7,18 @@ High-accuracy Malayalam OCR engine. Target: ≥95% CER on printed text, ≥98% w
 ## Phase 1 — Build Foundation
 > CMake target graph, component stubs, all libraries wired up, tests compile and pass.
 
-- [ ] Create component directory structure (`preprocessing`, `detection`, `recognition`, `decoding`, `language_model`, `pipeline`)
-- [ ] Write public header for each component (`include/aksharanet/<component>/<name>.hpp`)
-- [ ] Write stub `.cpp` for each component (returns empty/trivial values)
-- [ ] Write `CMakeLists.txt` for each component as a static library
-- [ ] Wire CMake target graph: `aksharanet_cli → pipeline → preprocessing, detection, recognition, decoding, language_model`
-- [ ] Add `aksharanet_warnings` INTERFACE target with centralised compiler flags (`-Wall -Wextra -Werror`)
-- [ ] Link ICU4C (`uc`, `i18n`) into `language_model` and `decoding` targets
-- [ ] Link KenLM (via FetchContent) into `language_model` target
-- [ ] Link ONNX Runtime into `recognition` and `detection` targets
-- [ ] Link OpenCV into `preprocessing`, `detection`, `recognition` targets
-- [ ] Replace `test_stub.cpp` with per-component test files (`test_preprocessing.cpp`, `test_recognition.cpp`, etc.)
-- [ ] All tests pass with `ctest --test-dir build --output-on-failure`
+- [x] Create component directory structure (`preprocessing`, `detection`, `recognition`, `decoding`, `language_model`, `pipeline`)
+- [x] Write public header for each component (`include/aksharanet/<component>/<name>.hpp`)
+- [x] Write stub `.cpp` for each component (returns empty/trivial values)
+- [x] Write `CMakeLists.txt` for each component as a static library
+- [x] Wire CMake target graph: `aksharanet_cli → pipeline → preprocessing, detection, recognition, decoding, language_model`
+- [x] Add `aksharanet_warnings` INTERFACE target with centralised compiler flags (`-Wall -Wextra -Werror`)
+- [x] Link ICU4C (`uc`, `i18n`) into `language_model` and `decoding` targets
+- [x] Link KenLM (via FetchContent) into `language_model` target
+- [x] Link ONNX Runtime into `recognition` and `detection` targets
+- [x] Link OpenCV into `preprocessing`, `detection`, `recognition` targets
+- [x] Replace `test_stub.cpp` with per-component test files (`test_preprocessing.cpp`, `test_recognition.cpp`, etc.)
+- [x] All tests pass with `ctest --test-dir build --output-on-failure`
 
 ---
 
