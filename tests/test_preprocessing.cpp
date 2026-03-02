@@ -48,3 +48,18 @@ TEST(Preprocessing, DetectSkewOnBlankIsZero) {
     double angle = p.detect_skew(input);
     EXPECT_NEAR(angle, 0.0, 0.01);
 }
+
+TEST(Preprocessing, NormalizeContrastPreservesSizeAndType) {
+    aksharanet::Preprocessor p;
+    cv::Mat input = cv::Mat::ones(100, 200, CV_8UC1) * 100;
+    cv::Mat output = p.normalize_contrast(input);
+    EXPECT_EQ(output.size(), input.size());
+    EXPECT_EQ(output.type(), input.type());
+}
+
+TEST(Preprocessing, CorrectPerspectivePreservesSize) {
+    aksharanet::Preprocessor p;
+    cv::Mat input = cv::Mat::ones(200, 400, CV_8UC1) * 255;
+    cv::Mat output = p.correct_perspective(input);
+    EXPECT_EQ(output.size(), input.size());
+}

@@ -1,5 +1,7 @@
 #include <aksharanet/preprocessing/preprocessor.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/photo.hpp>
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -85,6 +87,64 @@ cv::Mat Preprocessor::deskew(const cv::Mat& binary) {
     return result;
 }
 
+cv::Mat Preprocessor::normalize_contrast(const cv::Mat& gray) {
+    // CLAHE — adaptive histogram equalization with clip limit to avoid
+    // amplifying noise in flat regions while boosting faded text
+    auto clahe = cv::createCLAHE(2.0, cv::Size(8, 8));
+    cv::Mat result;
+    clahe->apply(gray, result);
+    return result;
+}
+
+cv::Mat Preprocessor::correct_perspective(const cv::Mat& gray) {
+    // Detect document edges using Canny + contour finding
+    cv::Mat edges;
+    cv::Canny(gray, edges, 50, 150);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(edges, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    if (contours.empty())
+        return gray.clone();
+
+    // Find the largest contour — assumed to be the document boundary
+    auto largest = std::max_element(contours.begin(), contours.end(),
+        [](const auto& a, const auto& b) {
+            return cv::contourArea(a) < cv::contourArea(b);
+        });
+
+    std::vector<cv::Point> approx;
+    cv::approxPolyDP(*largest, approx, cv::arcLength(*largest, true) * 0.02, true);
+
+    // Only correct if we found a quadrilateral
+    if (approx.size() != 4)
+        return gray.clone();
+
+    // Sort corners: top-left, top-right, bottom-right, bottom-left
+    std::sort(approx.begin(), approx.end(), [](const cv::Point& a, const cv::Point& b) {
+        return a.y < b.y || (a.y == b.y && a.x < b.x);
+    });
+
+    std::vector<cv::Point2f> src = {
+        cv::Point2f(approx[0]),
+        cv::Point2f(approx[1]),
+        cv::Point2f(approx[3]),
+        cv::Point2f(approx[2])
+    };
+
+    float w = static_cast<float>(gray.cols);
+    float h = static_cast<float>(gray.rows);
+    std::vector<cv::Point2f> dst = {
+        {0, 0}, {w, 0}, {0, h}, {w, h}
+    };
+
+    cv::Mat transform = cv::getPerspectiveTransform(src, dst);
+    cv::Mat result;
+    cv::warpPerspective(gray, result, transform, gray.size(),
+                        cv::INTER_LINEAR, cv::BORDER_CONSTANT, cv::Scalar(255));
+    return result;
+}
+
 cv::Mat Preprocessor::process(const cv::Mat& input) {
     cv::Mat gray;
     if (input.channels() == 3)
@@ -92,6 +152,7 @@ cv::Mat Preprocessor::process(const cv::Mat& input) {
     else
         gray = input.clone();
 
+    gray = normalize_contrast(gray);
     gray = denoise(gray);
     gray = binarize(gray);
     gray = deskew(gray);

@@ -20,6 +20,12 @@ public:
 
     // Rotate image to correct detected skew
     cv::Mat deskew(const cv::Mat& binary);
+
+    // CLAHE contrast normalization — boosts faded/low-contrast scans
+    cv::Mat normalize_contrast(const cv::Mat& gray);
+
+    // Perspective correction — flattens images taken at an angle
+    cv::Mat correct_perspective(const cv::Mat& gray);
 };
 
 } // namespace aksharanet
