@@ -145,6 +145,46 @@ cv::Mat Preprocessor::correct_perspective(const cv::Mat& gray) {
     return result;
 }
 
+cv::Mat Preprocessor::resize_with_padding(const cv::Mat& gray, int target_w, int target_h) {
+    float scale = std::min(
+        static_cast<float>(target_w) / gray.cols,
+        static_cast<float>(target_h) / gray.rows
+    );
+
+    int scaled_w = static_cast<int>(gray.cols * scale);
+    int scaled_h = static_cast<int>(gray.rows * scale);
+
+    cv::Mat scaled;
+    cv::resize(gray, scaled, cv::Size(scaled_w, scaled_h), 0, 0, cv::INTER_AREA);
+
+    // Place scaled image top-left, pad remainder with white
+    cv::Mat canvas(target_h, target_w, CV_8UC1, cv::Scalar(255));
+    scaled.copyTo(canvas(cv::Rect(0, 0, scaled_w, scaled_h)));
+    return canvas;
+}
+
+bool Preprocessor::is_clean_render(const cv::Mat& gray) {
+    // Clean digital renders have very few unique grey values —
+    // pixels are either near-black (text) or near-white (background)
+    // with almost nothing in between. Scanned images have broad histograms.
+    cv::Mat hist;
+    const int    channels[] = {0};
+    const int    hist_size  = 256;
+    const float  range[]    = {0, 256};
+    const float* ranges[]   = {range};
+
+    cv::calcHist(&gray, 1, channels, cv::Mat(), hist, 1, &hist_size, ranges);
+
+    // Count bins in the mid-grey range (64–192) that have significant mass
+    float total  = static_cast<float>(gray.total());
+    float midsum = 0.0f;
+    for (int i = 64; i < 192; ++i)
+        midsum += hist.at<float>(i);
+
+    // If less than 2% of pixels are mid-grey, it's likely a clean render
+    return (midsum / total) < 0.02f;
+}
+
 cv::Mat Preprocessor::process(const cv::Mat& input) {
     cv::Mat gray;
     if (input.channels() == 3)
@@ -152,10 +192,16 @@ cv::Mat Preprocessor::process(const cv::Mat& input) {
     else
         gray = input.clone();
 
-    gray = normalize_contrast(gray);
-    gray = denoise(gray);
-    gray = binarize(gray);
-    gray = deskew(gray);
+    if (is_clean_render(gray)) {
+        // Clean digital render — skip denoising and binarization,
+        // they would only degrade already-perfect pixels
+        gray = deskew(gray);
+    } else {
+        gray = normalize_contrast(gray);
+        gray = denoise(gray);
+        gray = binarize(gray);
+        gray = deskew(gray);
+    }
     return gray;
 }
 

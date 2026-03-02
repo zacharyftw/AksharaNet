@@ -26,6 +26,14 @@ public:
 
     // Perspective correction — flattens images taken at an angle
     cv::Mat correct_perspective(const cv::Mat& gray);
+
+    // Resize to target dimensions with padding to preserve aspect ratio
+    // Pads with white (255) to avoid stretching Malayalam vowel signs
+    cv::Mat resize_with_padding(const cv::Mat& gray, int target_w, int target_h);
+
+    // Returns true if the image is a clean digital render (PDF screenshot etc.)
+    // Clean renders skip binarization to avoid degrading already-perfect pixels
+    bool is_clean_render(const cv::Mat& gray);
 };
 
 } // namespace aksharanet

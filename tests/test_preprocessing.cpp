@@ -63,3 +63,25 @@ TEST(Preprocessing, CorrectPerspectivePreservesSize) {
     cv::Mat output = p.correct_perspective(input);
     EXPECT_EQ(output.size(), input.size());
 }
+
+TEST(Preprocessing, ResizeWithPaddingProducesTargetSize) {
+    aksharanet::Preprocessor p;
+    cv::Mat input = cv::Mat::ones(64, 512, CV_8UC1) * 128;
+    cv::Mat output = p.resize_with_padding(input, 128, 32);
+    EXPECT_EQ(output.cols, 128);
+    EXPECT_EQ(output.rows, 32);
+}
+
+TEST(Preprocessing, IsCleanRenderDetectsHighContrastImage) {
+    aksharanet::Preprocessor p;
+    // Pure white image — all pixels in background bin, nothing mid-grey
+    cv::Mat clean = cv::Mat::ones(100, 100, CV_8UC1) * 255;
+    EXPECT_TRUE(p.is_clean_render(clean));
+}
+
+TEST(Preprocessing, IsCleanRenderRejectsMidGreyImage) {
+    aksharanet::Preprocessor p;
+    // Uniform mid-grey — typical of scanned/noisy images
+    cv::Mat scan = cv::Mat::ones(100, 100, CV_8UC1) * 128;
+    EXPECT_FALSE(p.is_clean_render(scan));
+}
