@@ -6,7 +6,7 @@ namespace aksharanet {
 
 class Preprocessor {
 public:
-    // Full pipeline: denoise → binarize → (future stages)
+    // Full pipeline: denoise → binarize → deskew → (future stages)
     cv::Mat process(const cv::Mat& input);
 
     // Sauvola adaptive binarization — handles uneven lighting and thin Malayalam strokes
@@ -14,6 +14,12 @@ public:
 
     // Gaussian denoising before binarization
     cv::Mat denoise(const cv::Mat& gray);
+
+    // Detect skew angle (degrees) via Hough line transform
+    double detect_skew(const cv::Mat& binary);
+
+    // Rotate image to correct detected skew
+    cv::Mat deskew(const cv::Mat& binary);
 };
 
 } // namespace aksharanet

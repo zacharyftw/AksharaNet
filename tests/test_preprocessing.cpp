@@ -33,3 +33,18 @@ TEST(Preprocessing, BinarizeOutputIsBinary) {
     EXPECT_TRUE(minVal == 0.0 || minVal == 255.0);
     EXPECT_TRUE(maxVal == 0.0 || maxVal == 255.0);
 }
+
+TEST(Preprocessing, DeskewPreservesSize) {
+    aksharanet::Preprocessor p;
+    cv::Mat input = cv::Mat::ones(200, 400, CV_8UC1) * 255;
+    cv::Mat output = p.deskew(input);
+    EXPECT_EQ(output.size(), input.size());
+}
+
+TEST(Preprocessing, DetectSkewOnBlankIsZero) {
+    aksharanet::Preprocessor p;
+    // Blank white image has no lines — skew should be 0
+    cv::Mat input = cv::Mat::ones(200, 400, CV_8UC1) * 255;
+    double angle = p.detect_skew(input);
+    EXPECT_NEAR(angle, 0.0, 0.01);
+}
