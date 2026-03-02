@@ -85,3 +85,21 @@ TEST(Preprocessing, IsCleanRenderRejectsMidGreyImage) {
     cv::Mat scan = cv::Mat::ones(100, 100, CV_8UC1) * 128;
     EXPECT_FALSE(p.is_clean_render(scan));
 }
+
+TEST(Preprocessing, SegmentLinesOnBlankReturnsEmpty) {
+    aksharanet::Preprocessor p;
+    // All-white image has no text rows — should return no lines
+    cv::Mat blank = cv::Mat::ones(200, 400, CV_8UC1) * 255;
+    auto lines = p.segment_lines(blank);
+    EXPECT_TRUE(lines.empty());
+}
+
+TEST(Preprocessing, SegmentLinesFindsTextBands) {
+    aksharanet::Preprocessor p;
+    // Create image with two horizontal black bands (simulated text lines)
+    cv::Mat img = cv::Mat::ones(100, 200, CV_8UC1) * 255;
+    img(cv::Rect(0, 10, 200, 15)).setTo(0); // line 1
+    img(cv::Rect(0, 50, 200, 15)).setTo(0); // line 2
+    auto lines = p.segment_lines(img);
+    EXPECT_EQ(static_cast<int>(lines.size()), 2);
+}

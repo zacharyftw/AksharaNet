@@ -25,14 +25,14 @@ High-accuracy Malayalam OCR engine. Target: ≥95% CER on printed text, ≥98% w
 ## Phase 2 — Preprocessing Pipeline
 > Clean, normalised image into the recognition stage.
 
-- [ ] Implement Sauvola adaptive binarization (handles uneven lighting, thin Malayalam strokes)
-- [ ] Implement Otsu binarization as fallback
-- [ ] Implement Gaussian denoising
-- [ ] Implement skew detection and correction (Hough transform based)
-- [ ] Implement perspective correction
-- [ ] Implement contrast normalization (CLAHE)
-- [ ] Preserve aspect ratio on resize — critical for Malayalam vowel signs
-- [ ] Skip binarization path for clean digital renders (detect and bypass)
+- [x] Implement Sauvola adaptive binarization (handles uneven lighting, thin Malayalam strokes)
+- [x] Implement Gaussian denoising
+- [x] Implement skew detection and correction (Hough transform based)
+- [x] Implement perspective correction
+- [x] Implement contrast normalization (CLAHE)
+- [x] Preserve aspect ratio on resize — critical for Malayalam vowel signs
+- [x] Skip binarization path for clean digital renders (detect and bypass)
+- [x] Line segmentation via horizontal projection profile
 - [ ] Unit tests: known-skew images corrected within ±0.5°
 - [ ] Unit tests: binarized output matches reference fixtures
 - [ ] Benchmark: preprocessing completes in <20ms per image on CPU

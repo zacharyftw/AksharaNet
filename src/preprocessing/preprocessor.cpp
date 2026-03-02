@@ -185,6 +185,38 @@ bool Preprocessor::is_clean_render(const cv::Mat& gray) {
     return (midsum / total) < 0.02f;
 }
 
+std::vector<cv::Mat> Preprocessor::segment_lines(const cv::Mat& binary) {
+    // Horizontal projection: count black (text) pixels per row
+    // Binary image convention: 0 = text, 255 = background
+    std::vector<int> projection(binary.rows, 0);
+    for (int r = 0; r < binary.rows; ++r)
+        for (int c = 0; c < binary.cols; ++c)
+            if (binary.at<uchar>(r, c) == 0)
+                ++projection[r];
+
+    // Find text line bands: rows where projection > threshold
+    const int min_text_pixels = std::max(1, binary.cols / 50);
+    const int min_line_height = 5;
+
+    std::vector<cv::Mat> lines;
+    int line_start = -1;
+
+    for (int r = 0; r <= binary.rows; ++r) {
+        bool is_text_row = (r < binary.rows) && (projection[r] >= min_text_pixels);
+
+        if (is_text_row && line_start < 0) {
+            line_start = r;
+        } else if (!is_text_row && line_start >= 0) {
+            int height = r - line_start;
+            if (height >= min_line_height)
+                lines.push_back(binary(cv::Rect(0, line_start, binary.cols, height)).clone());
+            line_start = -1;
+        }
+    }
+
+    return lines;
+}
+
 cv::Mat Preprocessor::process(const cv::Mat& input) {
     cv::Mat gray;
     if (input.channels() == 3)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <opencv2/core.hpp>
+#include <vector>
 
 namespace aksharanet {
 
@@ -34,6 +35,10 @@ public:
     // Returns true if the image is a clean digital render (PDF screenshot etc.)
     // Clean renders skip binarization to avoid degrading already-perfect pixels
     bool is_clean_render(const cv::Mat& gray);
+
+    // Segment a binarized image into individual text line crops
+    // Uses horizontal projection profile — finds valleys between text rows
+    std::vector<cv::Mat> segment_lines(const cv::Mat& binary);
 };
 
 } // namespace aksharanet
