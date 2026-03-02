@@ -6,7 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(OpenCV REQUIRED)
 find_package(onnxruntime REQUIRED)
+find_package(ICU REQUIRED COMPONENTS uc i18n)
 find_package(GTest REQUIRED)
+
+enable_testing()
+
+include(cmake/FetchKenLM.cmake)
 
 add_subdirectory(src)
 add_subdirectory(tests)

@@ -1,6 +1,7 @@
 [requires]
 opencv/4.9.0
 onnxruntime/1.18.1
+icu/73.2
 gtest/1.14.0
 
 [generators]
@@ -13,3 +14,5 @@ cmake_layout
 [options]
 opencv*:shared=False
 onnxruntime*:shared=False
+icu*:shared=False
+gtest*:shared=False
