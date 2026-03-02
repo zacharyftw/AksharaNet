@@ -1,0 +1,15 @@
+[requires]
+opencv/4.9.0
+onnxruntime/1.18.1
+gtest/1.14.0
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout
+
+[options]
+opencv*:shared=False
+onnxruntime*:shared=False
