@@ -13,6 +13,11 @@ Decoder::Decoder(std::vector<std::string> vocab, int blank_id, int eos_id,
       eos_id_(eos_id),
       beam_width_(beam_width) {}
 
+void Decoder::set_lm_scorer(LMScorer scorer, float lm_weight) {
+    lm_scorer_ = std::move(scorer);
+    lm_weight_ = lm_weight;
+}
+
 std::vector<float> Decoder::log_softmax(const float* logits, int size) {
     float max_val = *std::max_element(logits, logits + size);
 
@@ -94,6 +99,12 @@ std::string Decoder::decode(const std::vector<float>& logits, int vocab_size) {
                 } else {
                     h.tokens = beam.tokens;
                     h.tokens.push_back(v);
+
+                    // LM shallow fusion: add weighted LM score for new token
+                    if (lm_scorer_ && lm_weight_ > 0.0f) {
+                        std::string partial = tokens_to_string(h.tokens);
+                        h.score += lm_weight_ * lm_scorer_(partial);
+                    }
                 }
 
                 candidates.push_back(std::move(h));

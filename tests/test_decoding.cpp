@@ -89,3 +89,16 @@ TEST_F(DecodingTest, BlankBetweenSameTokenAllowsRepeat) {
     auto logits = make_logits({2, 0, 2}, vocab_size);
     EXPECT_EQ(d.greedy_decode(logits, vocab_size), "aa");
 }
+
+TEST_F(DecodingTest, LMFusionBoostsPreferredSequence) {
+    aksharanet::Decoder d(vocab, blank_id, eos_id, 5);
+    // LM scorer that prefers sequences containing "ab"
+    d.set_lm_scorer([](const std::string& text) -> float {
+        return (text.find("ab") != std::string::npos) ? 1.0f : 0.0f;
+    }, 0.5f);
+
+    auto logits = make_logits({2, 3, 4}, vocab_size);
+    std::string result = d.decode(logits, vocab_size);
+    // With strong model logits, result should still be "abc"
+    EXPECT_EQ(result, "abc");
+}

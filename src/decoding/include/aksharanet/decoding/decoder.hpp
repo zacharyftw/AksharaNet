@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -10,18 +11,21 @@ struct Hypothesis {
     float score = 0.0f;
 };
 
+// LM scoring callback: takes partial text, returns log-prob to add
+using LMScorer = std::function<float(const std::string&)>;
+
 class Decoder {
 public:
-    // vocab: grapheme cluster strings indexed by token ID
-    // blank_id: CTC blank token ID (collapsed during decoding)
-    // eos_id: end-of-sequence token ID
     Decoder(std::vector<std::string> vocab, int blank_id, int eos_id,
             int beam_width = 20);
+
+    // Set LM scorer for shallow fusion (weight controls LM influence)
+    void set_lm_scorer(LMScorer scorer, float lm_weight = 0.5f);
 
     // Greedy decode: argmax at each position, collapse blanks
     std::string greedy_decode(const std::vector<float>& logits, int vocab_size);
 
-    // Beam search decode
+    // Beam search decode (with optional LM fusion)
     std::string decode(const std::vector<float>& logits, int vocab_size);
 
 private:
@@ -29,11 +33,10 @@ private:
     int blank_id_;
     int eos_id_;
     int beam_width_;
+    LMScorer lm_scorer_;
+    float lm_weight_ = 0.0f;
 
-    // Convert log-probabilities from logits at a single time step
     static std::vector<float> log_softmax(const float* logits, int size);
-
-    // Convert token ID sequence to string using vocabulary
     std::string tokens_to_string(const std::vector<int>& tokens) const;
 };
 
